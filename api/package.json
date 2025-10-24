@@ -1,0 +1,52 @@
+{
+  "name": "@vespa-viewer/api",
+  "private": true,
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/app.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "NODE_ENV=development nodemon --watch src --watch ../shared -e js,json --exec node src/app.js",
+    "start": "NODE_ENV=production node src/app.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "pm2:start": "pm2 start npm --name 'api' -- run start",
+    "pm2:stop": "pm2 stop api",
+    "pm2:reload": "pm2 reload api --update-env",
+    "pm2:restart": "pm2 restart api",
+    "pm2:deploy": "pm2 describe api > /dev/null 2>&1 && npm run pm2:reload || npm run pm2:start"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.8.4",
+    "cheerio": "^1.0.0",
+    "compression": "^1.7.5",
+    "connect-pg-simple": "^10.0.0",
+    "cors": "^2.8.5",
+    "csv-parser": "^3.2.0",
+    "dotenv": "^16.4.7",
+    "exponential-backoff": "^3.1.2",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "express-session": "^1.18.1",
+    "google-auth-library": "^9.15.1",
+    "helmet": "^8.0.0",
+    "jszip": "^3.10.1",
+    "mammoth": "^1.9.0",
+    "morgan": "^1.10.0",
+    "p-throttle": "^7.0.0",
+    "pg": "^8.14.1",
+    "pm2": "^5.4.3",
+    "tunnel-ssh": "^5.2.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.26.0",
+    "eslint": "^9.26.0",
+    "eslint-plugin-node": "^11.1.0",
+    "globals": "^16.1.0",
+    "nodemon": "^3.1.9",
+    "typescript-eslint": "^8.32.0"
+  }
+}
