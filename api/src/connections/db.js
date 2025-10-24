@@ -4,8 +4,14 @@ const { Pool } = pkg;
 import { createTunnel } from "tunnel-ssh";
 import { readFileSync } from "fs";
 import process from "process";
+import { runner } from "node-pg-migrate";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
 
 import config from "../config/index.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 let pool;
 
@@ -90,6 +96,18 @@ export async function initDB() {
     pool = new Pool(connectionConfig);
     await pool.connect();
     console.log("Database connected successfully");
+
+    // Run migrations
+    console.log("Running database migrations...");
+    const migrationsDir = join(__dirname, "../../../sql/migrations");
+    await runner({
+      databaseUrl: connectionConfig,
+      dir: migrationsDir,
+      direction: "up",
+      migrationsTable: "pgmigrations",
+      verbose: false,
+    });
+    console.log("Database migrations completed");
   } catch (error) {
     console.error("Database connection failed:", error.message);
     process.exit(1);
