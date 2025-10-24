@@ -39,7 +39,7 @@ app.use(
     cookie: {
       httpOnly: true,
       maxAge: 180 * 24 * 60 * 60 * 1000, // 180 days
-      sameSite: config.nodeEnv === "production" ? "lax" : "none",
+      sameSite: "lax",
       secure: config.nodeEnv === "production",
     },
   })
@@ -96,6 +96,9 @@ app.use("/auth", authRouter);
 
 import { router as userRouter } from "./user/index.js";
 app.use("/user", userRouter);
+
+import { router as dataSourceRouter } from "./data-source/index.js";
+app.use("/data-source", dataSourceRouter);
 
 // Not found handler
 app.use(() => {

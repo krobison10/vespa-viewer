@@ -2,8 +2,10 @@ import { useId } from 'react';
 
 import { useRouter } from 'next/navigation';
 
-import { Server } from 'lucide-react';
+import { DatabaseZap } from 'lucide-react';
 
+import { useModalState } from '@/components/common/hooks/use_modal_state';
+import { DataSourcesModal } from '@/components/common/sidebar/data_sources_modal';
 import { Text } from '@/components/common/text';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -11,41 +13,12 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 
 export function Sidebar() {
   const router = useRouter();
-
   const scrollAreaId = useId();
 
   return (
     <div className="w-64 px-1 flex flex-col h-full">
-      <div className="px-3 pb-3 mb-auto">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                className="w-full justify-between min-h-fit p-2 group"
-                onClick={() => router.push('/connections')}
-              >
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full border-[1px] border-border bg-background group-hover:bg-background/50">
-                    <Server />
-                  </div>
-
-                  <div className="flex flex-col items-start gap-1">
-                    <Text variant="p" className="">
-                      Connections
-                    </Text>
-                    <Text variant="p" className="text-xs text-muted-foreground">
-                      Create and manage
-                    </Text>
-                  </div>
-                </div>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <Text variant="p">Create and manage your connections</Text>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+      <div className="flex gap-2 px-1">
+        <DataSourcesButton />
       </div>
 
       <ScrollArea
@@ -57,6 +30,35 @@ export function Sidebar() {
       >
         <div className="flex flex-col gap-6"></div>
       </ScrollArea>
+    </div>
+  );
+}
+
+function DataSourcesButton() {
+  const {
+    isOpen: isDataSourcesModalOpen,
+    openModal: openDataSourcesModal,
+    closeModal: closeDataSourcesModal,
+  } = useModalState(false);
+
+  return (
+    <div>
+      {isDataSourcesModalOpen && (
+        <DataSourcesModal isOpen={isDataSourcesModalOpen} closeModal={closeDataSourcesModal} />
+      )}
+
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" className="" size="icon" onClick={openDataSourcesModal}>
+              <DatabaseZap className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <Text variant="p">Data sources</Text>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </div>
   );
 }
