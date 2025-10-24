@@ -33,9 +33,6 @@ export function SettingsModal({ isOpen, closeModal, initialTab = 'general', onTa
         return <General />;
       case 'appearance':
         return <Appearance />;
-      case 'account':
-        return <Account />;
-
       default:
         return <></>;
     }
@@ -76,27 +73,21 @@ const tabs = [
 ];
 
 function SettingsSidebar({ onSelectTab, selectedTab }) {
-  const hasAdvancedContext = useSubscriptionHasFeature(FEATURES.ADVANCED_CONTEXT);
-
-  const hiddenTabs = hasAdvancedContext ? [] : ['context'];
-
   return (
     <div className="h-full flex flex-col gap-2 w-48">
-      {tabs
-        .filter(tab => !hiddenTabs.includes(tab.value))
-        .map(tab => (
-          <div
-            key={tab.value}
-            className={clsx(
-              'flex items-center gap-2 cursor-pointer justify-start px-3 py-2 rounded-md text-sm',
-              selectedTab === tab.value && 'bg-secondary'
-            )}
-            onClick={() => onSelectTab(tab.value)}
-          >
-            <tab.icon className="w-4 h-4" />
-            <Text>{tab.title}</Text>
-          </div>
-        ))}
+      {tabs.map(tab => (
+        <div
+          key={tab.value}
+          className={clsx(
+            'flex items-center gap-2 cursor-pointer justify-start px-3 py-2 rounded-md text-sm',
+            selectedTab === tab.value && 'bg-secondary'
+          )}
+          onClick={() => onSelectTab(tab.value)}
+        >
+          <tab.icon className="w-4 h-4" />
+          <Text>{tab.title}</Text>
+        </div>
+      ))}
     </div>
   );
 }

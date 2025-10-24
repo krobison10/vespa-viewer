@@ -27,6 +27,13 @@ export async function login(req, res, next) {
       throw new NotFoundError("User not found");
     }
 
+    // User found, complete login
+    req.session.email = existingUser.email;
+    req.session.uid = existingUser.uid;
+    req.session.isLoggedIn = true;
+
+    return respond.ok(res);
+
     // const credentials = await authModel.getCredentials(existingUser.uid);
     // if (!credentials) {
     //   const { state, redirect } = authService.startGoogleLogin();
@@ -35,35 +42,33 @@ export async function login(req, res, next) {
     // }
 
     // Initial request
-    if (!req.body.password) {
-      return respond.ok(res);
-    }
+    // if (!req.body.password) {
+    //   return respond.ok(res);
+    // }
 
-    // Second request
-    let user;
+    // // Second request
+    // let user;
 
-    try {
-      user = await authService.login(email, req.body.password);
-    } catch (error) {
-      console.error("Login error:", error);
-      return respond.data(
-        res,
-        {
-          status: "fail",
-          message: "Invalid email or password",
-          code: "invalid_credentials",
-        },
-        403
-      );
-    }
+    // try {
+    //   user = await authService.login(email, req.body.password);
+    // } catch (error) {
+    //   console.error("Login error:", error);
+    //   return respond.data(
+    //     res,
+    //     {
+    //       status: "fail",
+    //       message: "Invalid email or password",
+    //       code: "invalid_credentials",
+    //     },
+    //     403
+    //   );
+    // }
 
-    res.clearCookie("loginEmail");
+    // req.session.email = user.email;
+    // req.session.uid = user.uid;
+    // req.session.isLoggedIn = true;
 
-    req.session.email = user.email;
-    req.session.uid = user.uid;
-    req.session.isLoggedIn = true;
-
-    return respond.ok(res);
+    // return respond.ok(res);
   } catch (error) {
     next(error);
   }

@@ -7,7 +7,7 @@ import { useSearchParams } from 'next/navigation';
 
 import { Loader2 } from 'lucide-react';
 
-import ExternalLayoutMinimal from '@/components/layouts/external_layout_minimal';
+import ExternalLayout from '@/components/layouts/external_layout';
 import { showError } from '@/components/providers/alert_provider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -114,7 +114,7 @@ export function EnterPassword() {
   };
 
   return (
-    <ExternalLayoutMinimal>
+    <ExternalLayout>
       <div className="flex justify-center items-center h-full">
         <div className="flex flex-col gap-8 justify-center items-center w-96">
           <h1 className="text-4xl font-bold">Enter password</h1>
@@ -168,6 +168,6 @@ export function EnterPassword() {
           </div>
         </div>
       </div>
-    </ExternalLayoutMinimal>
+    </ExternalLayout>
   );
 }

@@ -109,7 +109,8 @@ export function Login() {
           if (data.redirect) {
             window.location.href = data.redirect;
           } else {
-            router.push('/login/password');
+            router.push('/');
+            // router.push('/login/password');
           }
         },
       }

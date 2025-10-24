@@ -17,8 +17,7 @@ dotenv.config({ path: envPath });
 export default {
   // Environment
   port: process.env.PORT || 8080,
-  nodeEnv: process.env.NODE_ENV,
-  appEnv: process.env.APP_ENV,
+  nodeEnv: process.env.NODE_ENV || "production",
 
   // DB
   dbUser: process.env.DB_USER,

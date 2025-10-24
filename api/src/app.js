@@ -1,6 +1,5 @@
 import express from "express";
 import compression from "compression";
-import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import session from "express-session";
@@ -38,25 +37,13 @@ app.use(
     saveUninitialized: false,
     rolling: false,
     cookie: {
-      secure: config.nodeEnv === "production",
       httpOnly: true,
       maxAge: 180 * 24 * 60 * 60 * 1000, // 180 days
-      sameSite: "lax",
+      sameSite: config.nodeEnv === "production" ? "lax" : "none",
+      secure: config.nodeEnv === "production",
     },
   })
 );
-
-// Needed because local dev is cross-origin
-if (config.appEnv === "local") {
-  const corsOptions = {};
-  corsOptions.origin = "http://localhost:3000";
-  corsOptions.credentials = true;
-  corsOptions.methods = ["GET", "POST", "PUT", "DELETE"];
-  corsOptions.allowedHeaders = ["Content-Type", "Authorization"];
-  corsOptions.maxAge = 300; // 5 minutes
-
-  app.use(cors(corsOptions));
-}
 
 // Global middlewares
 app.use(helmet());
