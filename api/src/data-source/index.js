@@ -23,4 +23,10 @@ router.get("/:dataSourceId/console/:id", dataSourceHandler.getConsole);
 router.put("/:dataSourceId/console/:id", dataSourceHandler.updateConsole);
 router.delete("/:dataSourceId/console/:id", dataSourceHandler.removeConsole);
 
+// Query execution route
+router.post(
+  "/:dataSourceId/console/:id/execute",
+  dataSourceHandler.executeQuery
+);
+
 export { router };

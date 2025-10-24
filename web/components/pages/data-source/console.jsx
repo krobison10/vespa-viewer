@@ -8,6 +8,7 @@ import { Check, GripHorizontal, Loader2, Play, Plus, Trash2 } from 'lucide-react
 
 import { useConsoleQuery } from '@/components/common/sidebar/hooks/use_console_query';
 import { useDataSourceQuery } from '@/components/common/sidebar/hooks/use_data_source_query';
+import { useExecuteQueryMutation } from '@/components/common/sidebar/hooks/use_execute_query_mutation';
 import { useUpdateConsoleMutation } from '@/components/common/sidebar/hooks/use_update_console_mutation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,15 +19,6 @@ const MIN_SECTION_HEIGHT = 150;
 const AUTO_SAVE_INTERVAL = 1000; // Check for changes every 1 second
 
 function SavingStatus({ isPending, hasUnsavedChanges }) {
-  if (isPending) {
-    return (
-      <div className="flex items-center gap-1 text-sm text-amber-600">
-        <Loader2 className="h-4 w-4 animate-spin" />
-        <span>Saving</span>
-      </div>
-    );
-  }
-
   if (hasUnsavedChanges) {
     return (
       <div className="flex items-center gap-1 text-sm text-amber-600">
@@ -51,6 +43,7 @@ export function Console() {
   const { data: dataSource } = useDataSourceQuery(dataSourceId);
   const { data: consoleData } = useConsoleQuery(dataSourceId, consoleId);
   const updateConsoleMutation = useUpdateConsoleMutation();
+  const executeQueryMutation = useExecuteQueryMutation();
 
   const [yqlQuery, setYqlQuery] = useState('');
   const [parameters, setParameters] = useState([{ id: Date.now(), key: '', value: '' }]);
@@ -66,6 +59,7 @@ export function Console() {
   const saveIntervalRef = useRef(null);
   const isInitializedRef = useRef(false);
   const lastSavedStateRef = useRef(null);
+  const fullConsoleDataRef = useRef(null);
 
   const addParameter = () => {
     setParameters([...parameters, { id: Date.now(), key: '', value: '' }]);
@@ -94,12 +88,47 @@ export function Console() {
   };
 
   const executeQuery = async () => {
+    if (!yqlQuery.trim()) {
+      return;
+    }
+
     setIsExecuting(true);
-    // TODO: Implement actual query execution
-    setTimeout(() => {
-      setResults({ message: 'Query execution will be implemented' });
+    setResults(null);
+
+    try {
+      // Merge with existing console_data to preserve fields like lastResponse
+      const console_data = {
+        ...fullConsoleDataRef.current,
+        yql: yqlQuery,
+        parameters: parameters,
+        panelSizes: {
+          queryHeight,
+          parametersHeight,
+        },
+      };
+
+      const result = await executeQueryMutation.mutateAsync({
+        data_source_id: dataSourceId,
+        id: consoleId,
+        yql: yqlQuery,
+        parameters: parameters,
+        console_data,
+      });
+
+      setResults(result);
+
+      // Update fullConsoleDataRef with the new lastResponse
+      if (result?.data) {
+        fullConsoleDataRef.current = {
+          ...console_data,
+          lastResponse: result.data,
+        };
+      }
+    } catch (error) {
+      // API errors are shown via alert, don't set results
+    } finally {
       setIsExecuting(false);
-    }, 1000);
+    }
   };
 
   const handleMouseDown = section => {
@@ -142,13 +171,19 @@ export function Console() {
   // Load initial console data
   useEffect(() => {
     if (consoleData && !isInitializedRef.current) {
-      const data = consoleData.console_data;
+      const data = consoleData.console_data || {};
       if (data?.yql) setYqlQuery(data.yql);
       if (data?.parameters) setParameters(data.parameters);
       if (data?.panelSizes) {
         setQueryHeight(data.panelSizes.queryHeight);
         setParametersHeight(data.panelSizes.parametersHeight);
       }
+      if (data?.lastResponse) {
+        setResults({ success: true, status: 200, data: data.lastResponse });
+      }
+
+      // Store the full console_data to preserve fields we don't manage
+      fullConsoleDataRef.current = data;
 
       // Set initial saved state
       lastSavedStateRef.current = {
@@ -178,7 +213,9 @@ export function Console() {
   const saveConsoleState = useCallback(() => {
     if (!isInitializedRef.current) return;
 
+    // Merge with existing console_data to preserve fields like lastResponse
     const console_data = {
+      ...fullConsoleDataRef.current,
       yql: yqlQuery,
       parameters: parameters,
       panelSizes: {
@@ -187,7 +224,12 @@ export function Console() {
       },
     };
 
-    lastSavedStateRef.current = console_data;
+    fullConsoleDataRef.current = console_data;
+    lastSavedStateRef.current = {
+      yql: yqlQuery,
+      parameters: parameters,
+      panelSizes: { queryHeight, parametersHeight },
+    };
     setHasUnsavedChanges(false);
     updateConsoleMutation.mutate({
       data_source_id: dataSourceId,
@@ -249,7 +291,7 @@ export function Console() {
         <div className="flex items-center justify-between px-4 py-2 border-b bg-muted/30">
           <h3 className="text-sm font-medium">YQL Query</h3>
           <Button size="sm" onClick={executeQuery} disabled={isExecuting} className="gap-2">
-            <Play className="h-4 w-4" />
+            {isExecuting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
             Execute
           </Button>
         </div>
@@ -325,17 +367,15 @@ export function Console() {
         <div className="flex items-center justify-between px-4 py-2 border-b bg-muted/30">
           <h3 className="text-sm font-medium">Results</h3>
         </div>
-        <ScrollArea className="flex-1">
-          <div className="p-4">
-            {results ? (
-              <pre className="text-sm font-mono bg-muted/50 p-4 rounded-md overflow-auto">
-                {JSON.stringify(results, null, 2)}
-              </pre>
-            ) : (
-              <p className="text-sm text-muted-foreground text-center py-8">Execute a query to see results here</p>
-            )}
-          </div>
-        </ScrollArea>
+        <div className="flex-1 overflow-auto p-4">
+          {results ? (
+            <pre className="text-sm font-mono bg-muted/50 p-4 rounded-md whitespace-pre inline-block min-w-full">
+              {JSON.stringify(results, null, 2)}
+            </pre>
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-8">Execute a query to see results here</p>
+          )}
+        </div>
       </div>
     </div>
   );

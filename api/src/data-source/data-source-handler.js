@@ -2,6 +2,7 @@ import { respond } from "../utils/respond.js";
 import { NotFoundError, BadRequestError } from "../utils/APIError.js";
 
 import * as dataSourceService from "./data-source-service.js";
+import * as vespaService from "../vespa/vespa-service.js";
 
 /**
  * Get all data sources for the authenticated user
@@ -306,6 +307,94 @@ export async function removeConsole(req, res, next) {
     }
 
     return respond.ok(res);
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * Execute a Vespa query
+ */
+export async function executeQuery(req, res, next) {
+  try {
+    const uid = req.session.uid;
+    const consoleId = req.params.id;
+    const dataSourceId = parseInt(req.params.dataSourceId);
+
+    if (isNaN(dataSourceId)) {
+      throw new BadRequestError("Invalid data source ID");
+    }
+
+    const { yql, parameters, console_data } = req.body;
+
+    if (!yql) {
+      throw new BadRequestError("YQL query is required");
+    }
+
+    let id;
+
+    // Handle "default" as a special ID to get the default console
+    if (consoleId === "default") {
+      const defaultConsole =
+        await dataSourceService.getDefaultConsoleByDataSource(
+          dataSourceId,
+          uid
+        );
+      if (!defaultConsole) {
+        throw new NotFoundError("Default console not found");
+      }
+      id = defaultConsole.id;
+    } else {
+      id = parseInt(consoleId);
+      if (isNaN(id)) {
+        throw new BadRequestError("Invalid console ID");
+      }
+    }
+
+    // Save console state if provided
+    if (console_data) {
+      await dataSourceService.updateConsole(id, uid, {
+        consoleData: console_data,
+      });
+    }
+
+    // Get data source
+    const dataSource = await dataSourceService.getById(dataSourceId, uid);
+
+    if (!dataSource) {
+      throw new NotFoundError("Data source not found");
+    }
+
+    // Convert parameters array to object
+    const paramsObject = {};
+    if (parameters && Array.isArray(parameters)) {
+      parameters.forEach((param) => {
+        if (param.key && param.value) {
+          paramsObject[param.key] = param.value;
+        }
+      });
+    }
+
+    // Execute Vespa query
+    const result = await vespaService.executeQuery(
+      dataSource,
+      yql,
+      paramsObject
+    );
+
+    // Save the raw response to console_data
+    if (result.data) {
+      const updatedConsoleData = {
+        ...console_data,
+        lastResponse: result.data,
+      };
+      await dataSourceService.updateConsole(id, uid, {
+        consoleData: updatedConsoleData,
+      });
+    }
+
+    // Return the full result (success or error)
+    return respond.data(res, { result });
   } catch (error) {
     next(error);
   }
