@@ -21,15 +21,19 @@ export function useCreateConsoleMutation() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create console');
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.message || 'Failed to create console');
       }
 
       const data = await response.json();
       return data.data.console;
     },
-    onSuccess: () => {
-      // Invalidate data sources query to refresh the consoles
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.DATA_SOURCES });
+    onSuccess: async () => {
+      // Refetch data sources query to get updated consoles
+      await queryClient.refetchQueries({ queryKey: QUERY_KEYS.DATA_SOURCES });
+    },
+    onError: error => {
+      console.error('Failed to create console:', error);
     },
   });
 }

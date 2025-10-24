@@ -86,6 +86,10 @@ export async function getConsoleById(id, uid) {
   return await dataSourceModel.getConsoleById(id, uid);
 }
 
+export async function getDefaultConsoleByDataSource(dataSourceId, uid) {
+  return await dataSourceModel.getDefaultConsoleByDataSource(dataSourceId, uid);
+}
+
 export async function createConsole(dataSourceId, uid, data) {
   return await dataSourceModel.createConsole(dataSourceId, uid, data);
 }

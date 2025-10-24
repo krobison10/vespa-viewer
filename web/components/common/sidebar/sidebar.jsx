@@ -1,6 +1,9 @@
 import { useId, useState } from 'react';
 
+import { useRouter } from 'next/navigation';
+
 import * as Collapsible from '@radix-ui/react-collapsible';
+import * as ContextMenu from '@radix-ui/react-context-menu';
 import { ChevronDown, ChevronRight, DatabaseZap, Plus } from 'lucide-react';
 
 import { useLoadingState } from '@/components/common/hooks/use_loading_state';
@@ -10,7 +13,6 @@ import { useCreateConsoleMutation } from '@/components/common/sidebar/hooks/use_
 import { useDataSourcesQuery } from '@/components/common/sidebar/hooks/use_data_sources_query';
 import { Text } from '@/components/common/text';
 import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -51,9 +53,9 @@ export function Sidebar() {
 }
 
 function DataSourceItem({ dataSource }) {
+  const router = useRouter();
   const { mutate: createConsole } = useCreateConsoleMutation();
   const [isOpen, setIsOpen] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
 
   const consoles = (dataSource.consoles || []).filter(c => c.id !== null);
   const nonDefaultConsoles = consoles.filter(c => !c.is_default);
@@ -74,43 +76,46 @@ function DataSourceItem({ dataSource }) {
       name: `Console ${nextNumber}`,
       is_default: false,
     });
-    setMenuOpen(false);
   };
 
-  const handleContextMenu = e => {
-    e.preventDefault();
-    setMenuOpen(true);
+  const navigateToConsole = (consoleId, isDefault = false) => {
+    const id = isDefault ? 'default' : consoleId;
+    router.push(`/data-source/${dataSource.id}/console/${id}`);
+  };
+
+  const navigateToDefaultConsole = () => {
+    navigateToConsole(null, true);
   };
 
   // If only has default console, show as non-expandable (clicking opens default console)
   if (!hasMultipleConsoles) {
     return (
-      <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-        <div
-          onContextMenu={handleContextMenu}
-          className="hover:bg-accent rounded-md px-2 py-1.5 cursor-pointer"
-          onClick={() => {
-            // TODO: Open default console
-            console.log('Open default console:', defaultConsole);
-          }}
-        >
-          <Text className="text-sm truncate">{dataSource.name}</Text>
-        </div>
-        <DropdownMenuContent side="right" align="start">
-          <DropdownMenuItem onClick={handleCreateConsole}>
-            <Plus className="w-4 h-4 mr-2" />
-            New Console
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <ContextMenu.Root>
+        <ContextMenu.Trigger asChild>
+          <div className="hover:bg-accent rounded-md px-2 py-1.5 cursor-pointer" onClick={navigateToDefaultConsole}>
+            <Text className="text-sm truncate">{dataSource.name}</Text>
+          </div>
+        </ContextMenu.Trigger>
+        <ContextMenu.Portal>
+          <ContextMenu.Content className="min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md">
+            <ContextMenu.Item
+              className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none focus:bg-accent focus:text-accent-foreground"
+              onClick={handleCreateConsole}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              New Console
+            </ContextMenu.Item>
+          </ContextMenu.Content>
+        </ContextMenu.Portal>
+      </ContextMenu.Root>
     );
   }
 
   // Has multiple consoles, show as collapsible
   return (
-    <Collapsible.Root open={isOpen} onOpenChange={setIsOpen}>
-      <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-        <div onContextMenu={handleContextMenu}>
+    <ContextMenu.Root>
+      <Collapsible.Root open={isOpen} onOpenChange={setIsOpen}>
+        <ContextMenu.Trigger asChild>
           <Collapsible.Trigger className="flex items-center gap-2 w-full text-left hover:bg-accent rounded-md px-2 py-1.5">
             {isOpen ? (
               <ChevronDown className="w-4 h-4 flex-shrink-0" />
@@ -119,24 +124,14 @@ function DataSourceItem({ dataSource }) {
             )}
             <Text className="text-sm truncate">{dataSource.name}</Text>
           </Collapsible.Trigger>
-        </div>
-
-        <DropdownMenuContent side="right" align="start">
-          <DropdownMenuItem onClick={handleCreateConsole}>
-            <Plus className="w-4 h-4 mr-2" />
-            New Console
-          </DropdownMenuItem>
-        </DropdownMenuContent>
+        </ContextMenu.Trigger>
 
         <Collapsible.Content>
           <div className="ml-6 flex flex-col gap-0.5 mt-0.5">
             {defaultConsole && (
               <div
                 className="px-2 py-1 hover:bg-accent rounded-md cursor-pointer"
-                onClick={() => {
-                  // TODO: Open console
-                  console.log('Open console:', defaultConsole);
-                }}
+                onClick={() => navigateToConsole(defaultConsole.id, true)}
               >
                 <Text className="text-sm text-muted-foreground">{defaultConsole.name}</Text>
               </div>
@@ -145,18 +140,27 @@ function DataSourceItem({ dataSource }) {
               <div
                 key={console.id}
                 className="px-2 py-1 hover:bg-accent rounded-md cursor-pointer"
-                onClick={() => {
-                  // TODO: Open console
-                  console.log('Open console:', console);
-                }}
+                onClick={() => navigateToConsole(console.id)}
               >
                 <Text className="text-sm text-muted-foreground">{console.name}</Text>
               </div>
             ))}
           </div>
         </Collapsible.Content>
-      </DropdownMenu>
-    </Collapsible.Root>
+      </Collapsible.Root>
+
+      <ContextMenu.Portal>
+        <ContextMenu.Content className="min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md">
+          <ContextMenu.Item
+            className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none focus:bg-accent focus:text-accent-foreground"
+            onClick={handleCreateConsole}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            New Console
+          </ContextMenu.Item>
+        </ContextMenu.Content>
+      </ContextMenu.Portal>
+    </ContextMenu.Root>
   );
 }
 

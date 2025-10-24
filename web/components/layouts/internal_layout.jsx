@@ -99,7 +99,7 @@ export default function InternalLayout({ children }) {
     <LayoutContext.Provider value={layoutContextValue}>
       <div className="h-screen flex flex-col overflow-hidden">
         {/* Nav Bar - Three-zone flex layout */}
-        <div className="h-12 flex items-center">
+        <div className="h-12 flex items-center border-b">
           {/* Left zone - Sidebar toggle and buttons */}
           <div
             className="shrink-0 flex items-center justify-between px-2 transition-all duration-300 ease-in-out overflow-hidden"
@@ -195,9 +195,7 @@ export default function InternalLayout({ children }) {
           {/* Main page */}
           <div
             className={clsx(
-              'h-full flex-1 border-t bg-card text-card-foreground shadow tracking-tight overflow-hidden',
-              !isSidebarOpen && 'rounded-none md:rounded-none',
-              isSidebarOpen && 'md:rounded-tl-2xl rounded-tl-none md:border-l'
+              'h-full flex-1 border-l bg-card text-card-foreground shadow tracking-tight overflow-hidden'
             )}
           >
             <ErrorBoundary>{children}</ErrorBoundary>

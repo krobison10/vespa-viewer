@@ -214,6 +214,23 @@ export async function getAllConsolesByDataSource(dataSourceId, uid) {
 }
 
 /**
+ * Get the default console for a data source
+ */
+export async function getDefaultConsoleByDataSource(dataSourceId, uid) {
+  const sql = `
+      SELECT c.* 
+      FROM consoles c
+      INNER JOIN data_sources ds ON c.data_source_id = ds.id
+      WHERE c.data_source_id = $1 AND ds.uid = $2 AND c.is_default = true
+      LIMIT 1
+    `;
+
+  const { rows } = await getDB().query(sql, [dataSourceId, uid]);
+
+  return rows[0] || null;
+}
+
+/**
  * Get a single console by id
  */
 export async function getConsoleById(id, uid) {

@@ -174,13 +174,28 @@ export async function getAllConsoles(req, res, next) {
 export async function getConsole(req, res, next) {
   try {
     const uid = req.session.uid;
-    const id = parseInt(req.params.id);
+    const consoleId = req.params.id;
+    const dataSourceId = parseInt(req.params.dataSourceId);
 
-    if (isNaN(id)) {
-      throw new BadRequestError("Invalid console ID");
+    if (isNaN(dataSourceId)) {
+      throw new BadRequestError("Invalid data source ID");
     }
 
-    const console = await dataSourceService.getConsoleById(id, uid);
+    let console;
+
+    // Handle "default" as a special ID to get the default console
+    if (consoleId === "default") {
+      console = await dataSourceService.getDefaultConsoleByDataSource(
+        dataSourceId,
+        uid
+      );
+    } else {
+      const id = parseInt(consoleId);
+      if (isNaN(id)) {
+        throw new BadRequestError("Invalid console ID");
+      }
+      console = await dataSourceService.getConsoleById(id, uid);
+    }
 
     if (!console) {
       throw new NotFoundError("Console not found");
