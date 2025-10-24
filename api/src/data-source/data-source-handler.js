@@ -201,7 +201,7 @@ export async function getConsole(req, res, next) {
       throw new NotFoundError("Console not found");
     }
 
-    return respond.data(res, { console });
+    return respond.data(res, { result: console });
   } catch (error) {
     next(error);
   }
@@ -229,7 +229,7 @@ export async function createConsole(req, res, next) {
       isDefault: is_default || false,
     });
 
-    return respond.data(res, { console });
+    return respond.data(res, { result: console });
   } catch (error) {
     next(error);
   }
@@ -241,23 +241,45 @@ export async function createConsole(req, res, next) {
 export async function updateConsole(req, res, next) {
   try {
     const uid = req.session.uid;
-    const id = parseInt(req.params.id);
+    const consoleId = req.params.id;
+    const dataSourceId = parseInt(req.params.dataSourceId);
 
-    if (isNaN(id)) {
-      throw new BadRequestError("Invalid console ID");
+    if (isNaN(dataSourceId)) {
+      throw new BadRequestError("Invalid data source ID");
     }
 
-    const { name } = req.body;
+    let id;
+
+    // Handle "default" as a special ID to get the default console
+    if (consoleId === "default") {
+      const defaultConsole =
+        await dataSourceService.getDefaultConsoleByDataSource(
+          dataSourceId,
+          uid
+        );
+      if (!defaultConsole) {
+        throw new NotFoundError("Default console not found");
+      }
+      id = defaultConsole.id;
+    } else {
+      id = parseInt(consoleId);
+      if (isNaN(id)) {
+        throw new BadRequestError("Invalid console ID");
+      }
+    }
+
+    const { name, console_data } = req.body;
 
     const console = await dataSourceService.updateConsole(id, uid, {
       name,
+      consoleData: console_data,
     });
 
     if (!console) {
       throw new NotFoundError("Console not found");
     }
 
-    return respond.data(res, { console });
+    return respond.data(res, { result: console });
   } catch (error) {
     next(error);
   }

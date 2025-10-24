@@ -1,26 +1,29 @@
 import { useQuery } from '@tanstack/react-query';
 
+import { showError } from '@/components/providers/alert_provider';
 import { QUERY_KEYS } from '@/components/query_keys';
 import { API_URL } from '@/config';
 
-/**
- * Hook to fetch a single console by id
- */
-export function useConsoleQuery(consoleId) {
+async function getConsole(dataSourceId, consoleId) {
+  try {
+    const response = await fetch(`${API_URL}/data-source/${dataSourceId}/console/${consoleId}`, {
+      credentials: 'include',
+    });
+
+    const data = await response.json();
+
+    return data.result || null;
+  } catch (error) {
+    showError(error.message || 'Failed to fetch console');
+    throw error;
+  }
+}
+
+export function useConsoleQuery(dataSourceId, consoleId) {
   return useQuery({
-    queryKey: QUERY_KEYS.CONSOLE(consoleId),
-    queryFn: async () => {
-      const response = await fetch(`${API_URL}/console/${consoleId}`, {
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch console');
-      }
-
-      const data = await response.json();
-      return data.data.console;
-    },
-    enabled: !!consoleId,
+    queryKey: [...QUERY_KEYS.DATA_SOURCES, dataSourceId, 'console', consoleId],
+    queryFn: () => getConsole(dataSourceId, consoleId),
+    enabled: !!dataSourceId && !!consoleId,
+    retry: false,
   });
 }

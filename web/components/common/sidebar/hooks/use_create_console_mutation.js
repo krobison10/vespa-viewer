@@ -26,10 +26,9 @@ export function useCreateConsoleMutation() {
       }
 
       const data = await response.json();
-      return data.data.console;
+      return data.result;
     },
     onSuccess: async () => {
-      // Refetch data sources query to get updated consoles
       await queryClient.refetchQueries({ queryKey: QUERY_KEYS.DATA_SOURCES });
     },
     onError: error => {

@@ -279,7 +279,7 @@ export async function createConsole(
 /**
  * Update a console
  */
-export async function updateConsole(id, uid, { name }) {
+export async function updateConsole(id, uid, { name, consoleData }) {
   let updateFields = [];
   let params = [];
   let paramIndex = 1;
@@ -287,6 +287,12 @@ export async function updateConsole(id, uid, { name }) {
   if (name !== undefined) {
     updateFields.push(`name = $${paramIndex}`);
     params.push(name);
+    paramIndex++;
+  }
+
+  if (consoleData !== undefined) {
+    updateFields.push(`console_data = $${paramIndex}`);
+    params.push(JSON.stringify(consoleData));
     paramIndex++;
   }
 
