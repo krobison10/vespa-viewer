@@ -12,7 +12,7 @@ async function getDataSources() {
 
     const data = await response.json();
 
-    return data.dataSources || [];
+    return data?.items || [];
   } catch (error) {
     showError(error.message || 'Failed to fetch data sources');
     throw error;

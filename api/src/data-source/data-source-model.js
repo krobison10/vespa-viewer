@@ -195,3 +195,125 @@ export async function remove(id, uid) {
 
   return rows.length > 0;
 }
+
+/**
+ * Get all consoles for a data source
+ */
+export async function getAllConsolesByDataSource(dataSourceId, uid) {
+  const sql = `
+      SELECT c.* 
+      FROM consoles c
+      INNER JOIN data_sources ds ON c.data_source_id = ds.id
+      WHERE c.data_source_id = $1 AND ds.uid = $2
+      ORDER BY c.is_default DESC, c.created_at ASC
+    `;
+
+  const { rows } = await getDB().query(sql, [dataSourceId, uid]);
+
+  return rows;
+}
+
+/**
+ * Get a single console by id
+ */
+export async function getConsoleById(id, uid) {
+  const sql = `
+      SELECT c.* 
+      FROM consoles c
+      INNER JOIN data_sources ds ON c.data_source_id = ds.id
+      WHERE c.id = $1 AND ds.uid = $2
+    `;
+
+  const { rows } = await getDB().query(sql, [id, uid]);
+
+  return rows[0] || null;
+}
+
+/**
+ * Create a console
+ */
+export async function createConsole(
+  dataSourceId,
+  uid,
+  { name, isDefault = false }
+) {
+  // First verify that the data source belongs to the user
+  const verifySQL = `SELECT id FROM data_sources WHERE id = $1 AND uid = $2`;
+  const { rows: verifyRows } = await getDB().query(verifySQL, [
+    dataSourceId,
+    uid,
+  ]);
+
+  if (verifyRows.length === 0) {
+    throw new Error("Data source not found or unauthorized");
+  }
+
+  const sql = `
+      INSERT INTO consoles (data_source_id, name, is_default) 
+      VALUES ($1, $2, $3)
+      RETURNING *
+    `;
+
+  const { rows } = await getDB().query(sql, [dataSourceId, name, isDefault]);
+
+  return rows[0];
+}
+
+/**
+ * Update a console
+ */
+export async function updateConsole(id, uid, { name }) {
+  let updateFields = [];
+  let params = [];
+  let paramIndex = 1;
+
+  if (name !== undefined) {
+    updateFields.push(`name = $${paramIndex}`);
+    params.push(name);
+    paramIndex++;
+  }
+
+  if (updateFields.length === 0) {
+    return null;
+  }
+
+  updateFields.push(`updated_at = NOW()`);
+
+  params.push(id);
+  const idParamIndex = paramIndex++;
+  params.push(uid);
+  const uidParamIndex = paramIndex;
+
+  const sql = `
+      UPDATE consoles c
+      SET ${updateFields.join(", ")}
+      FROM data_sources ds
+      WHERE c.id = $${idParamIndex} 
+        AND c.data_source_id = ds.id 
+        AND ds.uid = $${uidParamIndex}
+      RETURNING c.*
+    `;
+
+  const { rows } = await getDB().query(sql, params);
+
+  return rows[0] || null;
+}
+
+/**
+ * Delete a console (only if it's not the default)
+ */
+export async function removeConsole(id, uid) {
+  const sql = `
+      DELETE FROM consoles c
+      USING data_sources ds
+      WHERE c.id = $1 
+        AND c.data_source_id = ds.id 
+        AND ds.uid = $2
+        AND c.is_default = FALSE
+      RETURNING c.id
+    `;
+
+  const { rows } = await getDB().query(sql, [id, uid]);
+
+  return rows.length > 0;
+}

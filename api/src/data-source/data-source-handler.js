@@ -10,9 +10,9 @@ export async function getAll(req, res, next) {
   try {
     const uid = req.session.uid;
 
-    const dataSources = await dataSourceService.getAllByUser(uid);
+    const items = await dataSourceService.getAllByUser(uid);
 
-    return respond.data(res, { dataSources });
+    return respond.data(res, { items });
   } catch (error) {
     next(error);
   }
@@ -137,6 +137,135 @@ export async function remove(req, res, next) {
 
     if (!deleted) {
       throw new NotFoundError("Data source not found");
+    }
+
+    return respond.ok(res);
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * Get all consoles for a specific data source
+ */
+export async function getAllConsoles(req, res, next) {
+  try {
+    const uid = req.session.uid;
+    const dataSourceId = parseInt(req.params.dataSourceId);
+
+    if (isNaN(dataSourceId)) {
+      throw new BadRequestError("Invalid data source ID");
+    }
+
+    const consoles = await dataSourceService.getAllConsolesByDataSource(
+      dataSourceId,
+      uid
+    );
+
+    return respond.data(res, { consoles });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * Get a single console by id
+ */
+export async function getConsole(req, res, next) {
+  try {
+    const uid = req.session.uid;
+    const id = parseInt(req.params.id);
+
+    if (isNaN(id)) {
+      throw new BadRequestError("Invalid console ID");
+    }
+
+    const console = await dataSourceService.getConsoleById(id, uid);
+
+    if (!console) {
+      throw new NotFoundError("Console not found");
+    }
+
+    return respond.data(res, { console });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * Create a new console
+ */
+export async function createConsole(req, res, next) {
+  try {
+    const uid = req.session.uid;
+    const dataSourceId = parseInt(req.params.dataSourceId);
+    const { name, is_default } = req.body;
+
+    if (isNaN(dataSourceId)) {
+      throw new BadRequestError("Invalid data source ID");
+    }
+
+    if (!name) {
+      throw new BadRequestError("Console name is required");
+    }
+
+    const console = await dataSourceService.createConsole(dataSourceId, uid, {
+      name,
+      isDefault: is_default || false,
+    });
+
+    return respond.data(res, { console });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * Update a console
+ */
+export async function updateConsole(req, res, next) {
+  try {
+    const uid = req.session.uid;
+    const id = parseInt(req.params.id);
+
+    if (isNaN(id)) {
+      throw new BadRequestError("Invalid console ID");
+    }
+
+    const { name } = req.body;
+
+    const console = await dataSourceService.updateConsole(id, uid, {
+      name,
+    });
+
+    if (!console) {
+      throw new NotFoundError("Console not found");
+    }
+
+    return respond.data(res, { console });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * Delete a console
+ */
+export async function removeConsole(req, res, next) {
+  try {
+    const uid = req.session.uid;
+    const id = parseInt(req.params.id);
+
+    if (isNaN(id)) {
+      throw new BadRequestError("Invalid console ID");
+    }
+
+    const deleted = await dataSourceService.removeConsole(id, uid);
+
+    if (!deleted) {
+      throw new NotFoundError(
+        "Console not found or cannot delete default console"
+      );
     }
 
     return respond.ok(res);

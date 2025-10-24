@@ -4,11 +4,11 @@ import clsx from 'clsx';
 import { Database, Loader2, Minus, Plus } from 'lucide-react';
 
 import { ErrorBoundary } from '@/components/common/error_boundary';
-import { useCreateDataSourceMutation } from '@/components/common/hooks/use_create_data_source_mutation';
-import { useDataSourcesQuery } from '@/components/common/hooks/use_data_sources_query';
-import { useDeleteDataSourceMutation } from '@/components/common/hooks/use_delete_data_source_mutation';
 import { useLoadingState } from '@/components/common/hooks/use_loading_state';
-import { useUpdateDataSourceMutation } from '@/components/common/hooks/use_update_data_source_mutation';
+import { useCreateDataSourceMutation } from '@/components/common/sidebar/hooks/use_create_data_source_mutation';
+import { useDataSourcesQuery } from '@/components/common/sidebar/hooks/use_data_sources_query';
+import { useDeleteDataSourceMutation } from '@/components/common/sidebar/hooks/use_delete_data_source_mutation';
+import { useUpdateDataSourceMutation } from '@/components/common/sidebar/hooks/use_update_data_source_mutation';
 import { Text } from '@/components/common/text';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';

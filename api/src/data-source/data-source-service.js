@@ -5,10 +5,23 @@ import * as dataSourceModel from "./data-source-model.js";
  *
  * @param {number} uid - The uid of the user
  *
- * @returns {Promise<Array>} Array of data source objects
+ * @returns {Promise<Array>} Array of data source objects with consoles
  */
 export async function getAllByUser(uid) {
-  return await dataSourceModel.getAllByUser(uid);
+  const dataSources = await dataSourceModel.getAllByUser(uid);
+
+  // Get consoles for each data source
+  const dataSourcesWithConsoles = await Promise.all(
+    dataSources.map(async (dataSource) => ({
+      ...dataSource,
+      consoles: await dataSourceModel.getAllConsolesByDataSource(
+        dataSource.id,
+        uid
+      ),
+    }))
+  );
+
+  return dataSourcesWithConsoles;
 }
 
 /**
@@ -32,7 +45,12 @@ export async function getById(id, uid) {
  * @returns {Promise<Object>} The created data source object
  */
 export async function create(uid, data) {
-  return await dataSourceModel.create(uid, data);
+  const dataSource = await dataSourceModel.create(uid, data);
+
+  // Create a default console for the new data source
+  await createDefaultConsole(dataSource.id, uid);
+
+  return dataSource;
 }
 
 /**
@@ -58,4 +76,31 @@ export async function update(id, uid, data) {
  */
 export async function remove(id, uid) {
   return await dataSourceModel.remove(id, uid);
+}
+
+export async function getAllConsolesByDataSource(dataSourceId, uid) {
+  return await dataSourceModel.getAllConsolesByDataSource(dataSourceId, uid);
+}
+
+export async function getConsoleById(id, uid) {
+  return await dataSourceModel.getConsoleById(id, uid);
+}
+
+export async function createConsole(dataSourceId, uid, data) {
+  return await dataSourceModel.createConsole(dataSourceId, uid, data);
+}
+
+export async function createDefaultConsole(dataSourceId, uid) {
+  return await dataSourceModel.createConsole(dataSourceId, uid, {
+    name: "Default",
+    isDefault: true,
+  });
+}
+
+export async function updateConsole(id, uid, data) {
+  return await dataSourceModel.updateConsole(id, uid, data);
+}
+
+export async function removeConsole(id, uid) {
+  return await dataSourceModel.removeConsole(id, uid);
 }
