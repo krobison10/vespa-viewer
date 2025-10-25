@@ -25,13 +25,13 @@ export function Sidebar() {
   const showLoading = useLoadingState(isLoading);
 
   return (
-    <div className="w-[256px] px-1 flex flex-col h-full">
+    <div className="w-[256px] flex flex-col h-full">
       <div className="flex gap-2 px-1">
         <DataSourcesButton />
       </div>
 
       <ScrollArea
-        className="h-full flex-1 mb-4 pr-1"
+        className="h-full flex-1 mb-4 px-1"
         viewportProps={{
           id: `scroll-${scrollAreaId}`,
           className: '!overflow-y-auto',
@@ -163,20 +163,17 @@ function DataSourceItem({ dataSource }) {
     <ContextMenu>
       <Collapsible.Root open={isOpen} onOpenChange={setIsOpen}>
         <ContextMenuTrigger asChild>
-          <Collapsible.Trigger className="flex items-center gap-1 w-full text-left hover:bg-accent rounded-md px-1 py-1.5">
+          <Collapsible.Trigger className="flex items-center gap-1 text-left hover:bg-accent rounded-md px-1 py-1.5 max-w-[232px] overflow-hidden">
             <ChevronRight
               className={`w-3 h-3 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`}
             />
-
-            <div className="flex items-center gap-1">
-              <Unplug className="w-4 h-4 flex-shrink-0" />
-              <Text className="text-sm truncate">{dataSource.name}</Text>
-            </div>
+            <Unplug className="w-4 h-4 flex-shrink-0" />
+            <Text className="text-sm truncate min-w-0 flex-1">{dataSource.name}</Text>
           </Collapsible.Trigger>
         </ContextMenuTrigger>
 
         <Collapsible.Content className="overflow-hidden data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
-          <div className="ml-2 pl-1 border-l-2 border-border flex flex-col gap-0.5 mt-0.5">
+          <div className="ml-2 pl-1 border-l-2 border-border flex flex-col gap-0.5 mt-0.5 max-w-[224px]">
             {defaultConsole && (
               <ConsoleItem
                 console={defaultConsole}

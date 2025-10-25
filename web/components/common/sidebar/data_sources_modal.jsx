@@ -134,18 +134,18 @@ function DataSourcesSidebar({
         </Button>
       </div>
       <ScrollArea className="flex-1">
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1 max-w-[212px]">
           {dataSources.map(dataSource => (
             <div
               key={dataSource.id}
               className={clsx(
-                'flex items-center gap-2 cursor-pointer justify-start px-3 py-2 rounded-md text-sm',
+                'flex items-center gap-2 cursor-pointer justify-start px-3 py-2 rounded-md text-sm overflow-hidden',
                 selectedDataSourceId === dataSource.id && 'bg-secondary'
               )}
               onClick={() => onSelectDataSource(dataSource.id)}
             >
-              <Database className="w-4 h-4" />
-              <Text className="truncate">{dataSource.name}</Text>
+              <Database className="w-4 h-4 flex-shrink-0" />
+              <Text className="truncate min-w-0 flex-1">{dataSource.name}</Text>
             </div>
           ))}
         </div>
