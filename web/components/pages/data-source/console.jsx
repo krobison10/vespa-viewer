@@ -29,7 +29,7 @@ function getStatusVariant(statusCode) {
   if (!statusCode) return STATUS_VARIANT.NEUTRAL;
   if (statusCode >= 200 && statusCode < 300) return STATUS_VARIANT.POSITIVE;
   if (statusCode >= 300 && statusCode < 400) return STATUS_VARIANT.NEUTRAL;
-  if (statusCode >= 400 && statusCode < 500) return STATUS_VARIANT.WARN;
+  if (statusCode >= 400 && statusCode < 500) return STATUS_VARIANT.DESTRUCTIVE;
   if (statusCode >= 500) return STATUS_VARIANT.DESTRUCTIVE;
   return STATUS_VARIANT.NEUTRAL;
 }
@@ -150,11 +150,11 @@ export function Console() {
 
       setResults(result);
 
-      // Update fullConsoleDataRef with the new lastResponse
-      if (result?.data) {
+      // Update fullConsoleDataRef with the new lastResult
+      if (result) {
         fullConsoleDataRef.current = {
           ...console_data,
-          lastResponse: result.data,
+          lastResult: result,
         };
       }
     } catch (error) {
@@ -211,7 +211,11 @@ export function Console() {
         setQueryHeight(data.panelSizes.queryHeight);
         setParametersHeight(data.panelSizes.parametersHeight);
       }
-      if (data?.lastResponse) {
+      // Load lastResult (new format with status) or fallback to lastResponse (old format)
+      if (data?.lastResult) {
+        setResults(data.lastResult);
+      } else if (data?.lastResponse) {
+        // Backwards compatibility: old format without status
         setResults({ success: true, status: 200, data: data.lastResponse });
       }
 

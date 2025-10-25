@@ -44,6 +44,8 @@ export function Sidebar() {
               <Skeleton className="w-full h-8" />
               <Skeleton className="w-full h-8" />
             </>
+          ) : dataSources.length === 0 ? (
+            <EmptyState />
           ) : (
             dataSources.map(dataSource => <DataSourceItem key={dataSource.id} dataSource={dataSource} />)
           )}
@@ -78,6 +80,16 @@ function DataSourcesButton() {
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
+    </div>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
+      <Unplug className="w-8 h-8 text-muted-foreground mb-3" />
+      <Text className="text-sm text-muted-foreground mb-1 font-medium">No data sources</Text>
+      <Text className="text-xs text-muted-foreground">Click the data sources button above to add one</Text>
     </div>
   );
 }
@@ -163,7 +175,7 @@ function DataSourceItem({ dataSource }) {
     <ContextMenu>
       <Collapsible.Root open={isOpen} onOpenChange={setIsOpen}>
         <ContextMenuTrigger asChild>
-          <Collapsible.Trigger className="flex items-center gap-1 text-left hover:bg-accent rounded-md px-1 py-1.5 max-w-[232px] overflow-hidden">
+          <Collapsible.Trigger className="flex items-center gap-1 text-left hover:bg-accent rounded-md px-1 py-1.5 w-full">
             <ChevronRight
               className={`w-3 h-3 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`}
             />

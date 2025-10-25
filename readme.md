@@ -1,4 +1,4 @@
-# Vespa Viewer
+# VespaViewer
 
 A fully contained application for viewing and querying Vespa data sources.
 

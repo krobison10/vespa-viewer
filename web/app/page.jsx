@@ -17,7 +17,7 @@ export default async function Root() {
           <div className="flex flex-col items-center justify-center h-full gap-4 text-muted-foreground">
             <Terminal className="w-16 h-16" />
             <div className="text-center">
-              <h2 className="text-xl font-semibold mb-2">Welcome to Vespa Viewer</h2>
+              <h2 className="text-xl font-semibold mb-2">Welcome to VespaViewer</h2>
               <p className="text-sm">Create or select a data source and console to continue</p>
             </div>
           </div>

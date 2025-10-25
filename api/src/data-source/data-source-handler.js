@@ -395,11 +395,11 @@ export async function executeQuery(req, res, next) {
       paramsObject
     );
 
-    // Save the raw response to console_data
-    if (result.data) {
+    // Save the full result (including status code) to console_data
+    if (result) {
       const updatedConsoleData = {
         ...console_data,
-        lastResponse: result.data,
+        lastResult: result,
       };
       await dataSourceService.updateConsole(id, uid, {
         consoleData: updatedConsoleData,

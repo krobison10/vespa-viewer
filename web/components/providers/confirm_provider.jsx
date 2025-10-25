@@ -53,7 +53,7 @@ export const ConfirmProvider = ({ children }) => {
   return (
     <ConfirmContext.Provider value={{ confirm }}>
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent {...options.dialogProps}>
+        <DialogContent className="max-w-md" {...options.dialogProps}>
           <DialogHeader>
             {options.title && <DialogTitle {...options.titleProps}>{options.title}</DialogTitle>}
             {options.description && (

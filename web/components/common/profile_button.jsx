@@ -34,7 +34,7 @@ export function ProfileButton() {
   }, [isLogOutSuccess]);
 
   const { user } = useContext(UserContext);
-  const letter = user?.name?.charAt(0).toUpperCase() || '';
+  const letter = user?.email?.charAt(0).toUpperCase() || '';
 
   const [selectedSettingsTab, setSelectedSettingsTab] = useState('general');
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import clsx from 'clsx';
 import { Database, Loader2, Minus, Plus } from 'lucide-react';
@@ -10,11 +10,13 @@ import { useDataSourcesQuery } from '@/components/common/sidebar/hooks/use_data_
 import { useDeleteDataSourceMutation } from '@/components/common/sidebar/hooks/use_delete_data_source_mutation';
 import { useUpdateDataSourceMutation } from '@/components/common/sidebar/hooks/use_update_data_source_mutation';
 import { Text } from '@/components/common/text';
+import { useConfirm } from '@/components/providers/confirm_provider';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const DEFAULT_DATA_SOURCE = {
   name: 'New Data Source',
@@ -30,6 +32,7 @@ export function DataSourcesModal({ isOpen, closeModal }) {
   const { data: backendDataSources = [], isLoading } = useDataSourcesQuery();
   const { mutate: createDataSource } = useCreateDataSourceMutation();
   const { mutate: deleteDataSource } = useDeleteDataSourceMutation();
+  const confirm = useConfirm();
 
   const [selectedDataSourceId, setSelectedDataSourceId] = useState(
     backendDataSources.length > 0 ? backendDataSources[0].id : null
@@ -58,8 +61,22 @@ export function DataSourcesModal({ isOpen, closeModal }) {
     );
   };
 
-  const removeDataSource = () => {
+  const removeDataSource = async () => {
     if (!selectedDataSourceId) return;
+
+    const confirmed = await confirm({
+      title: 'Delete data source',
+      description: `Are you sure you want to delete "${selectedDataSource?.name}"? This action cannot be undone.`,
+      confirmationText: 'Delete',
+      confirmationButtonProps: {
+        variant: 'destructive',
+      },
+      dialogProps: {
+        className: 'max-w-sm',
+      },
+    });
+
+    if (!confirmed) return;
 
     deleteDataSource(selectedDataSourceId, {
       onSuccess: () => {
@@ -101,9 +118,7 @@ export function DataSourcesModal({ isOpen, closeModal }) {
                       <div className="flex items-center justify-center w-20 h-20 bg-muted rounded-full">
                         <Database className="w-12 h-12 text-muted-foreground/50" />
                       </div>
-                      <Text className="text-muted-foreground text-center">
-                        No data source selected. You can click the + button to create a new one.
-                      </Text>
+                      <Text className="text-muted-foreground text-center">No data source selected</Text>
                     </div>
                   )}
                 </div>
@@ -126,28 +141,54 @@ function DataSourcesSidebar({
   return (
     <div className="h-full flex flex-col gap-2 w-56">
       <div className="flex gap-1">
-        <Button variant="ghost" size="icon" onClick={onAddDataSource}>
-          <Plus className="w-4 h-4" />
-        </Button>
-        <Button variant="ghost" size="icon" onClick={onRemoveDataSource} disabled={dataSources.length === 0}>
-          <Minus className="w-4 h-4" />
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" onClick={onAddDataSource}>
+                <Plus className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <Text variant="p">Add data source</Text>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" onClick={onRemoveDataSource} disabled={dataSources.length === 0}>
+                <Minus className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <Text variant="p">Remove data source</Text>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
       <ScrollArea className="flex-1">
         <div className="flex flex-col gap-1 max-w-[212px]">
-          {dataSources.map(dataSource => (
-            <div
-              key={dataSource.id}
-              className={clsx(
-                'flex items-center gap-2 cursor-pointer justify-start px-3 py-2 rounded-md text-sm overflow-hidden',
-                selectedDataSourceId === dataSource.id && 'bg-secondary'
-              )}
-              onClick={() => onSelectDataSource(dataSource.id)}
-            >
-              <Database className="w-4 h-4 flex-shrink-0" />
-              <Text className="truncate min-w-0 flex-1">{dataSource.name}</Text>
+          {dataSources.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
+              <Database className="w-8 h-8 text-muted-foreground mb-3" />
+              <Text className="text-sm text-muted-foreground mb-1 font-medium">No data sources</Text>
+              <Text className="text-xs text-muted-foreground">Click the + button above to add one</Text>
             </div>
-          ))}
+          ) : (
+            dataSources.map(dataSource => (
+              <div
+                key={dataSource.id}
+                className={clsx(
+                  'flex items-center gap-2 cursor-pointer justify-start px-3 py-2 rounded-md text-sm overflow-hidden',
+                  selectedDataSourceId === dataSource.id && 'bg-secondary'
+                )}
+                onClick={() => onSelectDataSource(dataSource.id)}
+              >
+                <Database className="w-4 h-4 flex-shrink-0" />
+                <Text className="truncate min-w-0 flex-1">{dataSource.name}</Text>
+              </div>
+            ))
+          )}
         </div>
       </ScrollArea>
     </div>

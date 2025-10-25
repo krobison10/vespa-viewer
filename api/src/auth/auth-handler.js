@@ -1,6 +1,5 @@
 import config from "../config/index.js";
 
-import { NotFoundError } from "../utils/APIError.js";
 import { respond } from "../utils/respond.js";
 
 import Validate from "../utils/validate.js";
@@ -19,15 +18,15 @@ export async function login(req, res, next) {
       secure: false,
     });
 
-    // Make sure the user and credentials exist
-    const existingUser = await userModel.getByEmail(email);
+    // Get or create user
+    let existingUser = await userModel.getByEmail(email);
 
     if (!existingUser) {
-      // TODO: Create user
-      throw new NotFoundError("User not found");
+      // Automatically create user if they don't exist
+      existingUser = await userModel.create(email);
     }
 
-    // User found, complete login
+    // User found or created, complete login
     req.session.email = existingUser.email;
     req.session.uid = existingUser.uid;
     req.session.isLoggedIn = true;
