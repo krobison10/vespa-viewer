@@ -311,14 +311,26 @@ export function Console() {
 
   const resultsHeight = 100 - queryHeight - parametersHeight;
 
-  // Show 404 page if console not found
-  if (consoleError?.status === 404) {
+  // Show error state if console failed to load
+  if (consoleError) {
+    if (consoleError?.status === 404) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full gap-4 text-muted-foreground">
+          <Terminal className="w-16 h-16" />
+          <div className="text-center">
+            <h2 className="text-xl font-semibold mb-2">Console Not Found</h2>
+            <p className="text-sm">This console may have been deleted or does not exist</p>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="flex flex-col items-center justify-center h-full gap-4 text-muted-foreground">
         <Terminal className="w-16 h-16" />
         <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2">Console Not Found</h2>
-          <p className="text-sm">This console may have been deleted or does not exist</p>
+          <h2 className="text-xl font-semibold mb-2">Something Went Wrong</h2>
+          <p className="text-sm">Unable to load this console</p>
         </div>
       </div>
     );
