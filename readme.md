@@ -16,7 +16,9 @@ Build the Docker image:
 docker build -t vespa-viewer .
 ```
 
-Identify the credentials of the database you would like to connect to. If you don't have one, you can run one on the same machine in another Docker container:
+Identify the credentials of the database you would like to connect to. Make sure the database (the one inside the database), likely named vespa-viewer, is created beforehand, or the container will crash.
+
+If you don't have one, you can run one on the same machine in another Docker container:
 
 ```bash
 docker run --name vespa-viewer-db \
