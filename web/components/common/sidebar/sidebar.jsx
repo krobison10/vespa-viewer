@@ -3,10 +3,11 @@ import { useEffect, useId, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 
 import * as Collapsible from '@radix-ui/react-collapsible';
-import { ChevronDown, ChevronRight, Database, DatabaseZap, Plus, Terminal, Unplug } from 'lucide-react';
+import { ChevronRight, DatabaseZap, Plus, Unplug } from 'lucide-react';
 
 import { useLoadingState } from '@/components/common/hooks/use_loading_state';
 import { useModalState } from '@/components/common/hooks/use_modal_state';
+import { ConsoleItem } from '@/components/common/sidebar/console_item';
 import { DataSourcesModal } from '@/components/common/sidebar/data_sources_modal';
 import { useCreateConsoleMutation } from '@/components/common/sidebar/hooks/use_create_console_mutation';
 import { useDataSourcesQuery } from '@/components/common/sidebar/hooks/use_data_sources_query';
@@ -24,13 +25,13 @@ export function Sidebar() {
   const showLoading = useLoadingState(isLoading);
 
   return (
-    <div className="w-64 px-1 flex flex-col h-full">
+    <div className="w-[256px] px-1 flex flex-col h-full">
       <div className="flex gap-2 px-1">
         <DataSourcesButton />
       </div>
 
       <ScrollArea
-        className="h-full flex-1 mb-4"
+        className="h-full flex-1 mb-4 pr-1"
         viewportProps={{
           id: `scroll-${scrollAreaId}`,
           className: '!overflow-y-auto',
@@ -163,11 +164,9 @@ function DataSourceItem({ dataSource }) {
       <Collapsible.Root open={isOpen} onOpenChange={setIsOpen}>
         <ContextMenuTrigger asChild>
           <Collapsible.Trigger className="flex items-center gap-1 w-full text-left hover:bg-accent rounded-md px-1 py-1.5">
-            {isOpen ? (
-              <ChevronDown className="w-3 h-3 flex-shrink-0" />
-            ) : (
-              <ChevronRight className="w-3 h-3 flex-shrink-0" />
-            )}
+            <ChevronRight
+              className={`w-3 h-3 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`}
+            />
 
             <div className="flex items-center gap-1">
               <Unplug className="w-4 h-4 flex-shrink-0" />
@@ -176,32 +175,27 @@ function DataSourceItem({ dataSource }) {
           </Collapsible.Trigger>
         </ContextMenuTrigger>
 
-        <Collapsible.Content>
+        <Collapsible.Content className="overflow-hidden data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
           <div className="ml-2 pl-1 border-l-2 border-border flex flex-col gap-0.5 mt-0.5">
             {defaultConsole && (
-              <div
-                className={`px-2 py-1 hover:bg-accent rounded-md cursor-pointer flex items-center gap-1 text-muted-foreground ${
-                  isActiveDefaultConsole ? 'bg-accent' : ''
-                }`}
+              <ConsoleItem
+                console={defaultConsole}
+                dataSourceId={dataSource.id}
+                isSelected={isActiveDefaultConsole}
                 onClick={() => navigateToConsole(defaultConsole.id, true)}
-              >
-                <Terminal className="w-4 h-4 flex-shrink-0" />
-                <Text className="text-sm">{defaultConsole.name}</Text>
-              </div>
+                showOptionsMenu={false}
+              />
             )}
             {nonDefaultConsoles.map(console => {
               const isActiveConsole = isActiveDataSource && activeConsoleId === console.id.toString();
               return (
-                <div
+                <ConsoleItem
                   key={console.id}
-                  className={`px-2 py-1 hover:bg-accent rounded-md cursor-pointer flex items-center gap-1 text-muted-foreground ${
-                    isActiveConsole ? 'bg-accent' : ''
-                  }`}
+                  console={console}
+                  dataSourceId={dataSource.id}
+                  isSelected={isActiveConsole}
                   onClick={() => navigateToConsole(console.id)}
-                >
-                  <Terminal className="w-4 h-4 flex-shrink-0" />
-                  <Text className="text-sm">{console.name}</Text>
-                </div>
+                />
               );
             })}
           </div>

@@ -64,7 +64,7 @@ export function Console() {
   const { dataSourceId, consoleId } = params;
 
   const { data: dataSource } = useDataSourceQuery(dataSourceId);
-  const { data: consoleData } = useConsoleQuery(dataSourceId, consoleId);
+  const { data: consoleData, error: consoleError } = useConsoleQuery(dataSourceId, consoleId);
   const updateConsoleMutation = useUpdateConsoleMutation();
   const executeQueryMutation = useExecuteQueryMutation();
 
@@ -307,6 +307,19 @@ export function Console() {
 
   const resultsHeight = 100 - queryHeight - parametersHeight;
 
+  // Show 404 page if console not found
+  if (consoleError?.status === 404) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-4 text-muted-foreground">
+        <Terminal className="w-16 h-16" />
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">Console Not Found</h2>
+          <p className="text-sm">This console may have been deleted or does not exist</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div ref={containerRef} className="flex flex-col h-full">
       {/* Main Header */}
@@ -416,9 +429,15 @@ export function Console() {
               )}
             </div>
             <TabsList>
-              <TabsTrigger value="raw">JSON</TabsTrigger>
-              <TabsTrigger value="formatted">Formatted</TabsTrigger>
-              <TabsTrigger value="timing">Performance</TabsTrigger>
+              <TabsTrigger value="raw" className="!text-xs">
+                JSON
+              </TabsTrigger>
+              <TabsTrigger value="formatted" className="!text-xs">
+                Formatted
+              </TabsTrigger>
+              <TabsTrigger value="timing" className="!text-xs">
+                Performance
+              </TabsTrigger>
             </TabsList>
           </div>
 

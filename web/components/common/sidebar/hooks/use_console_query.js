@@ -13,13 +13,18 @@ async function getConsole(dataSourceId, consoleId) {
     const data = await response.json();
 
     if (!response.ok) {
-      const errorMessage = `Failed to fetch console: ${data?.message || 'unknown error'}`;
-      throw new Error(errorMessage);
+      throw {
+        message: `Failed to fetch console: ${data?.message || 'unknown error'}`,
+        detail: data?.error,
+        status: response.status,
+      };
     }
 
     return data.result || null;
   } catch (error) {
-    showError(error.message || 'Failed to fetch console');
+    if (error.status !== 404) {
+      showError(error.message || 'Failed to fetch console');
+    }
     throw error;
   }
 }
