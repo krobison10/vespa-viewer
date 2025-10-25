@@ -40,7 +40,7 @@ app.use(
       httpOnly: true,
       maxAge: 180 * 24 * 60 * 60 * 1000, // 180 days
       sameSite: "lax",
-      secure: config.nodeEnv === "production",
+      secure: false,
     },
   })
 );

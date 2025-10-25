@@ -20,7 +20,7 @@ async function logOut() {
       throw new Error(errorMessage);
     }
 
-    return data.result;
+    return data;
   } catch (error) {
     showError(error.message || 'Failed to log out');
     throw error;

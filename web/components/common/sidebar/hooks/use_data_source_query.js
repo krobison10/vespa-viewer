@@ -17,7 +17,7 @@ async function getDataSource(id) {
       throw new Error(errorMessage);
     }
 
-    return data.dataSource || null;
+    return data.result || null;
   } catch (error) {
     showError(error.message || 'Failed to fetch data source');
     throw error;

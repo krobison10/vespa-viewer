@@ -21,7 +21,7 @@ async function login(body, handledCodes = []) {
       throw new Error(errorMessage);
     }
 
-    return data.result;
+    return data;
   } catch (error) {
     showError(error.message || 'Failed to log in');
     throw error;

@@ -18,7 +18,7 @@ async function deleteConsole({ data_source_id, id }) {
       throw new Error(errorMessage);
     }
 
-    return data.result;
+    return data;
   } catch (error) {
     showError(error.message || 'Failed to delete console');
     throw error;

@@ -13,7 +13,7 @@ export async function getAll(req, res, next) {
 
     const items = await dataSourceService.getAllByUser(uid);
 
-    return respond.data(res, { items });
+    return respond.list(res, { items, total: items.length });
   } catch (error) {
     next(error);
   }
@@ -37,7 +37,7 @@ export async function getOne(req, res, next) {
       throw new NotFoundError("Data source not found");
     }
 
-    return respond.data(res, { dataSource });
+    return respond.data(res, { result: dataSource });
   } catch (error) {
     next(error);
   }
@@ -74,7 +74,7 @@ export async function create(req, res, next) {
       configPort: config_port,
     });
 
-    return respond.data(res, { dataSource });
+    return respond.data(res, { result: dataSource });
   } catch (error) {
     next(error);
   }
@@ -116,7 +116,7 @@ export async function update(req, res, next) {
       throw new NotFoundError("Data source not found");
     }
 
-    return respond.data(res, { dataSource });
+    return respond.data(res, { result: dataSource });
   } catch (error) {
     next(error);
   }
@@ -163,7 +163,7 @@ export async function getAllConsoles(req, res, next) {
       uid
     );
 
-    return respond.data(res, { consoles });
+    return respond.data(res, { result: consoles });
   } catch (error) {
     next(error);
   }
