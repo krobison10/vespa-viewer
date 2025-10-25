@@ -2,6 +2,8 @@
 
 A fully contained application for viewing and querying Vespa data sources.
 
+**WARNING**: This is not a secure application and password authentication is currently not configured. You should NOT make your deployment of this application open to the internet. I am not liable for any damages resulting from such actions. Deploy at your own risk, preferably in a private network shared amongst your team at the most.
+
 ## Quick Run
 
 To run the app you need to build the Docker image and run it with database connection details.
