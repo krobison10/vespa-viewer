@@ -22,7 +22,7 @@ async function updateDataSource({ id, ...body }) {
       throw new Error(errorMessage);
     }
 
-    return data.dataSource;
+    return data.result;
   } catch (error) {
     showError(error.message || 'Failed to update data source');
     throw error;

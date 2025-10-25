@@ -22,7 +22,7 @@ async function createDataSource(body) {
       throw new Error(errorMessage);
     }
 
-    return data.dataSource;
+    return data.result;
   } catch (error) {
     showError(error.message || 'Failed to create data source');
     throw error;

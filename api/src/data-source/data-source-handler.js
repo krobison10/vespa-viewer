@@ -375,6 +375,19 @@ export async function executeQuery(req, res, next) {
       });
     }
 
+    // Enforce hits parameter (default to 400, cap at 400)
+    if (paramsObject.hits) {
+      const hits = parseInt(paramsObject.hits);
+      if (isNaN(hits) || hits < 0) {
+        paramsObject.hits = "400";
+      } else if (hits > 400) {
+        paramsObject.hits = "400";
+      }
+    } else {
+      // Default to 400 if not specified
+      paramsObject.hits = "400";
+    }
+
     // Execute Vespa query
     const result = await vespaService.executeQuery(
       dataSource,

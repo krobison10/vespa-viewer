@@ -1,10 +1,9 @@
-import { useId, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 import * as Collapsible from '@radix-ui/react-collapsible';
-import * as ContextMenu from '@radix-ui/react-context-menu';
-import { ChevronDown, ChevronRight, DatabaseZap, Plus } from 'lucide-react';
+import { ChevronDown, ChevronRight, Database, DatabaseZap, Plus, Terminal, Unplug } from 'lucide-react';
 
 import { useLoadingState } from '@/components/common/hooks/use_loading_state';
 import { useModalState } from '@/components/common/hooks/use_modal_state';
@@ -13,6 +12,7 @@ import { useCreateConsoleMutation } from '@/components/common/sidebar/hooks/use_
 import { useDataSourcesQuery } from '@/components/common/sidebar/hooks/use_data_sources_query';
 import { Text } from '@/components/common/text';
 import { Button } from '@/components/ui/button';
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -52,8 +52,38 @@ export function Sidebar() {
   );
 }
 
+function DataSourcesButton() {
+  const {
+    isOpen: isDataSourcesModalOpen,
+    openModal: openDataSourcesModal,
+    closeModal: closeDataSourcesModal,
+  } = useModalState(false);
+
+  return (
+    <div>
+      {isDataSourcesModalOpen && (
+        <DataSourcesModal isOpen={isDataSourcesModalOpen} closeModal={closeDataSourcesModal} />
+      )}
+
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" className="" size="icon" onClick={openDataSourcesModal}>
+              <DatabaseZap className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <Text variant="p">Data sources</Text>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  );
+}
+
 function DataSourceItem({ dataSource }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { mutate: createConsole } = useCreateConsoleMutation();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -61,6 +91,21 @@ function DataSourceItem({ dataSource }) {
   const nonDefaultConsoles = consoles.filter(c => !c.is_default);
   const defaultConsole = consoles.find(c => c.is_default);
   const hasMultipleConsoles = nonDefaultConsoles.length > 0;
+
+  // Parse current URL to determine active data source and console
+  const pathMatch = pathname?.match(/\/data-source\/(\d+)\/console\/(.+)/);
+  const activeDataSourceId = pathMatch ? parseInt(pathMatch[1], 10) : null;
+  const activeConsoleId = pathMatch ? pathMatch[2] : null;
+
+  const isActiveDataSource = activeDataSourceId === dataSource.id;
+  const isActiveDefaultConsole = isActiveDataSource && activeConsoleId === 'default';
+
+  // Auto-expand if this data source is active and has multiple consoles
+  useEffect(() => {
+    if (isActiveDataSource && hasMultipleConsoles) {
+      setIsOpen(true);
+    }
+  }, [isActiveDataSource, hasMultipleConsoles]);
 
   const handleCreateConsole = () => {
     const existingNumbers = consoles
@@ -90,105 +135,85 @@ function DataSourceItem({ dataSource }) {
   // If only has default console, show as non-expandable (clicking opens default console)
   if (!hasMultipleConsoles) {
     return (
-      <ContextMenu.Root>
-        <ContextMenu.Trigger asChild>
-          <div className="hover:bg-accent rounded-md px-2 py-1.5 cursor-pointer" onClick={navigateToDefaultConsole}>
+      <ContextMenu>
+        <ContextMenuTrigger asChild>
+          <div
+            className={`flex items-center gap-1 hover:bg-accent rounded-md px-2 py-1.5 cursor-pointer ${
+              isActiveDataSource ? 'bg-accent' : ''
+            }`}
+            onClick={navigateToDefaultConsole}
+          >
+            <Unplug className="w-4 h-4 flex-shrink-0" />
             <Text className="text-sm truncate">{dataSource.name}</Text>
           </div>
-        </ContextMenu.Trigger>
-        <ContextMenu.Portal>
-          <ContextMenu.Content className="min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md">
-            <ContextMenu.Item
-              className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none focus:bg-accent focus:text-accent-foreground"
-              onClick={handleCreateConsole}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              New Console
-            </ContextMenu.Item>
-          </ContextMenu.Content>
-        </ContextMenu.Portal>
-      </ContextMenu.Root>
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          <ContextMenuItem onClick={handleCreateConsole}>
+            <Plus className="w-4 h-4 mr-2" />
+            New Console
+          </ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
     );
   }
 
   // Has multiple consoles, show as collapsible
   return (
-    <ContextMenu.Root>
+    <ContextMenu>
       <Collapsible.Root open={isOpen} onOpenChange={setIsOpen}>
-        <ContextMenu.Trigger asChild>
-          <Collapsible.Trigger className="flex items-center gap-2 w-full text-left hover:bg-accent rounded-md px-2 py-1.5">
+        <ContextMenuTrigger asChild>
+          <Collapsible.Trigger className="flex items-center gap-1 w-full text-left hover:bg-accent rounded-md px-1 py-1.5">
             {isOpen ? (
-              <ChevronDown className="w-4 h-4 flex-shrink-0" />
+              <ChevronDown className="w-3 h-3 flex-shrink-0" />
             ) : (
-              <ChevronRight className="w-4 h-4 flex-shrink-0" />
+              <ChevronRight className="w-3 h-3 flex-shrink-0" />
             )}
-            <Text className="text-sm truncate">{dataSource.name}</Text>
+
+            <div className="flex items-center gap-1">
+              <Unplug className="w-4 h-4 flex-shrink-0" />
+              <Text className="text-sm truncate">{dataSource.name}</Text>
+            </div>
           </Collapsible.Trigger>
-        </ContextMenu.Trigger>
+        </ContextMenuTrigger>
 
         <Collapsible.Content>
-          <div className="ml-6 flex flex-col gap-0.5 mt-0.5">
+          <div className="ml-2 pl-1 border-l-2 border-border flex flex-col gap-0.5 mt-0.5">
             {defaultConsole && (
               <div
-                className="px-2 py-1 hover:bg-accent rounded-md cursor-pointer"
+                className={`px-2 py-1 hover:bg-accent rounded-md cursor-pointer flex items-center gap-1 text-muted-foreground ${
+                  isActiveDefaultConsole ? 'bg-accent' : ''
+                }`}
                 onClick={() => navigateToConsole(defaultConsole.id, true)}
               >
-                <Text className="text-sm text-muted-foreground">{defaultConsole.name}</Text>
+                <Terminal className="w-4 h-4 flex-shrink-0" />
+                <Text className="text-sm">{defaultConsole.name}</Text>
               </div>
             )}
-            {nonDefaultConsoles.map(console => (
-              <div
-                key={console.id}
-                className="px-2 py-1 hover:bg-accent rounded-md cursor-pointer"
-                onClick={() => navigateToConsole(console.id)}
-              >
-                <Text className="text-sm text-muted-foreground">{console.name}</Text>
-              </div>
-            ))}
+            {nonDefaultConsoles.map(console => {
+              const isActiveConsole = isActiveDataSource && activeConsoleId === console.id.toString();
+              return (
+                <div
+                  key={console.id}
+                  className={`px-2 py-1 hover:bg-accent rounded-md cursor-pointer flex items-center gap-1 text-muted-foreground ${
+                    isActiveConsole ? 'bg-accent' : ''
+                  }`}
+                  onClick={() => navigateToConsole(console.id)}
+                >
+                  <Terminal className="w-4 h-4 flex-shrink-0" />
+                  <Text className="text-sm">{console.name}</Text>
+                </div>
+              );
+            })}
           </div>
         </Collapsible.Content>
       </Collapsible.Root>
 
-      <ContextMenu.Portal>
-        <ContextMenu.Content className="min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md">
-          <ContextMenu.Item
-            className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none focus:bg-accent focus:text-accent-foreground"
-            onClick={handleCreateConsole}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            New Console
-          </ContextMenu.Item>
-        </ContextMenu.Content>
-      </ContextMenu.Portal>
-    </ContextMenu.Root>
-  );
-}
-
-function DataSourcesButton() {
-  const {
-    isOpen: isDataSourcesModalOpen,
-    openModal: openDataSourcesModal,
-    closeModal: closeDataSourcesModal,
-  } = useModalState(false);
-
-  return (
-    <div>
-      {isDataSourcesModalOpen && (
-        <DataSourcesModal isOpen={isDataSourcesModalOpen} closeModal={closeDataSourcesModal} />
-      )}
-
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" className="" size="icon" onClick={openDataSourcesModal}>
-              <DatabaseZap className="w-4 h-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <Text variant="p">Data sources</Text>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    </div>
+      <ContextMenuContent>
+        <ContextMenuItem onClick={handleCreateConsole}>
+          <Plus className="w-4 h-4 mr-2" />
+          New Console
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
   );
 }

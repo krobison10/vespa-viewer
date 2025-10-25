@@ -18,7 +18,7 @@ async function deleteDataSource(id) {
       throw new Error(errorMessage);
     }
 
-    return data;
+    return data.result;
   } catch (error) {
     showError(error.message || 'Failed to delete data source');
     throw error;

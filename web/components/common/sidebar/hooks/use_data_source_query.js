@@ -12,6 +12,11 @@ async function getDataSource(id) {
 
     const data = await response.json();
 
+    if (!response.ok) {
+      const errorMessage = `Failed to fetch data source: ${data?.message || 'unknown error'}`;
+      throw new Error(errorMessage);
+    }
+
     return data.dataSource || null;
   } catch (error) {
     showError(error.message || 'Failed to fetch data source');
